@@ -25,10 +25,15 @@ import java.net.MalformedURLException;
 
 public class DetalsActivity extends Activity {
 
+	// строчичка которая принимает айдишник из главного класса
 	public static String JSON;
-	private static String APP_ID = "343214545779491"; // Replace with your App ID
+	// собственно ID приложения из facebook dev tools
+	// измените на свой
+	private static String APP_ID = "343214545779491"; 
 	private TextView data;
+	// Инициализируем класс фейсбук
 	private final Facebook facebook = new Facebook(APP_ID);
+	//запускаем его для работы
 	private AsyncFacebookRunner mAsyncRunner;
 	protected ImageLoader imageLoader = ImageLoader.getInstance();
 	ImageView imageView;
@@ -52,6 +57,7 @@ public class DetalsActivity extends Activity {
 							JSONObject profile = new JSONObject(response);
 							JSONObject data = profile.getJSONObject("data");
 							String url = data.getString("url");
+							//по заданому url скачиваем фотографию
 							imageLoader.init(ImageLoaderConfiguration.createDefault(DetalsActivity.this));
 							imageLoader.displayImage(url, imageView);
 						} catch (JSONException e) {
@@ -83,10 +89,12 @@ public class DetalsActivity extends Activity {
 		});
 	}
 
-	/** @param key */
+	/** @param key 
+	 * Получаем информацию о пользователе по его айди*/
 	@SuppressWarnings("deprecation")
 	public void getFriendInformation(String key) {
 
+		//id + всеп поля которые мы хотим видеть
 		mAsyncRunner.request(key + "?fields=id,name,gender,locale,birthday,hometown,languages,timezone&",
 				new RequestListener() {
 
@@ -98,6 +106,7 @@ public class DetalsActivity extends Activity {
 							@Override
 							public void run() {
 
+								//снова json который возвращает сервер
 								String json = response;
 								try {
 									JSONObject profile = new JSONObject(json);
@@ -158,12 +167,15 @@ public class DetalsActivity extends Activity {
 			@Override
 			public void onClick(View v) {
 
+				//по клику передаем снова ключ в следующий класс 
 				Intent intent = new Intent(DetalsActivity.this, FullAvatarActivity.class);
 				intent.putExtra(FullAvatarActivity.JSON, key);
 				startActivity(intent);
 			}
 		});
+		//ключ для функции получения иформации
 		getFriendInformation(key);
+		//ключ для получения аватара
 		getAvatar(key);
 	}
 }
