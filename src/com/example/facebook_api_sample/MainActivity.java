@@ -2,6 +2,7 @@ package com.example.facebook_api_sample;
 
 
 import adapter.FriendsAdapter;
+import objects.UserFB;
 
 import android.app.Activity;
 import android.content.Intent;
@@ -10,8 +11,8 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
-import android.widget.ListView;
 import android.widget.AdapterView.OnItemClickListener;
+import android.widget.ListView;
 
 import com.facebook.android.AsyncFacebookRunner;
 import com.facebook.android.AsyncFacebookRunner.RequestListener;
@@ -35,11 +36,6 @@ public class MainActivity extends Activity {
 	// собственно ID приложения из facebook dev tools
 	// измените на свой
 	private static String APP_ID = "343214545779491"; 
-	private static final String FIRST = "name";
-	private static final String IMAGE = "image";
-	private static final String LAST = "id";
-	//массив в котором будем хранить список друзей с фотографиями
-	private static ArrayList<HashMap<String, Object>> myUsers; 
 	// Инициализируем класс фейсбук
 	private Facebook facebook;
 	//запускаем его для работы
@@ -47,6 +43,7 @@ public class MainActivity extends Activity {
 	private SharedPreferences mPrefs;
 	private String FILENAME = "AndroidSSO_data";
 	private int i = 0;
+	private final ArrayList<UserFB> fetch = new ArrayList<UserFB>();
 	private ListView listView;
 	
 	@Override
@@ -77,15 +74,13 @@ public class MainActivity extends Activity {
 		if (expires == 0) {
 			loginToFacebook();
 		}
-		myUsers = new ArrayList<HashMap<String, Object>>();
+		
 		listView.setOnItemClickListener(new OnItemClickListener() {
 
 			@Override
 			public void onItemClick(AdapterView<?> a, View v, int position, long id) {
 
-				HashMap<String, Object> item = myUsers.get(position);
-				String key = item.get(LAST).toString();
-				
+					String key = fetch.get(position).getId();
 					Intent intent = new Intent(MainActivity.this, DetalsActivity.class);
 					intent.putExtra(DetalsActivity.JSON, key);
 					startActivity(intent);
@@ -123,24 +118,10 @@ public class MainActivity extends Activity {
 								@Override
 								public void run() {
 
-									//закидываем в массив все что получили
-									HashMap<String, Object> hm;
-									hm = new HashMap<String, Object>();
-									hm.put(FIRST, name);
-									hm.put(LAST, id);
-									hm.put(IMAGE, url);
-									myUsers.add(hm);
-									//вытаскиваем для передачи в адаптер (так лучше не делать, мой косяк)
-									String[] urls = new String[myUsers.size()];
-									String[] names = new String[myUsers.size()];
-									String[] indexcode = new String[myUsers.size()];
-									for (int i = 0; i < myUsers.size(); i++) {
-										urls[i] = (String) myUsers.get(i).get(IMAGE);
-										names[i] = (String) myUsers.get(i).get(FIRST);
-										indexcode[i] = (String) myUsers.get(i).get(LAST);
-									}
+									UserFB one = new UserFB(id, name, url);
+									fetch.add(one);
 									//передаем в адаптер для распечатки
-									listView.setAdapter(new FriendsAdapter(MainActivity.this, indexcode, names, urls));
+					                listView.setAdapter(new FriendsAdapter(MainActivity.this, R.id.listView1, fetch));
 								}
 							});
 						}

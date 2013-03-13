@@ -1,7 +1,9 @@
 package adapter;
 
+import objects.UserFB;
+
+import android.app.Activity;
 import android.content.Context;
-import android.graphics.Bitmap;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -10,41 +12,58 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.example.facebook_api_sample.R;
-import com.nostra13.universalimageloader.core.DisplayImageOptions;
 import com.nostra13.universalimageloader.core.ImageLoader;
 import com.nostra13.universalimageloader.core.ImageLoaderConfiguration;
 
-public class FriendsAdapter extends ArrayAdapter<String> {
+import java.util.ArrayList;
 
-	private final Context context;
-	private final String[] id;
-	private final String[] images;
-	private final String[] values;
-	DisplayImageOptions options;
+public class FriendsAdapter extends ArrayAdapter<UserFB> { // унаследовали от нашего класса UserFB
 
-	public FriendsAdapter(Context runnable, String[] indexcode, String[] names, String[] urls) {
+        private final Activity activity;
+        //
+        private final ArrayList<UserFB> entries;
 
-		super(runnable, R.layout.friendlist, names);
-		context = runnable;
-		values = names;
-		images = urls;
-		id = indexcode;
-	}
+        // конструктор класса, принимает активность, листвью и массив данных
+        public FriendsAdapter(final Activity a, final int textViewResourceId, final ArrayList<UserFB> entries) {
 
-	@Override
-	public View getView(int position, View convertView, ViewGroup parent) {
+                super(a, textViewResourceId, entries);
+                this.entries = entries;
+                activity = a;
+        }
 
-		LayoutInflater inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-		View rowView = inflater.inflate(R.layout.friendlist, parent, false);
-		TextView textView = (TextView) rowView.findViewById(R.id.label);
-		ImageView imageView = (ImageView) rowView.findViewById(R.id.logo);
-		textView.setText(values[position]);
-		//
-		options = new DisplayImageOptions.Builder().cacheInMemory().cacheOnDisc().bitmapConfig(
-				Bitmap.Config.RGB_565).build();
-		ImageLoader imageLoader = ImageLoader.getInstance();
-		imageLoader.init(ImageLoaderConfiguration.createDefault(getContext()));
-		imageLoader.displayImage(images[position], imageView, options);
-		return rowView;
-	}
+        @Override
+        public View getView(int position, View convertView, ViewGroup parent) {
+
+                View v = convertView;
+                ViewHolder holder;
+                if (v == null) {
+                        LayoutInflater inflater = (LayoutInflater) activity
+                                        .getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+                        v = inflater.inflate(R.layout.friendlist, parent, false);
+                        holder = new ViewHolder();
+                        // инициализируем нашу разметку
+                        holder.textView = (TextView) v.findViewById(R.id.label);
+                        holder.imageView = (ImageView) v.findViewById(R.id.logo);
+                        v.setTag(holder);
+                } else {
+                        holder = (ViewHolder) v.getTag();
+                }
+                UserFB userFB = entries.get(position);
+                if (userFB != null) {
+                        // получаем текст из массива
+                        holder.textView.setText(userFB.getName());
+                        // скачиваем картинки
+                        ImageLoader imageLoader = ImageLoader.getInstance();
+                        imageLoader.init(ImageLoaderConfiguration.createDefault(getContext()));
+                        imageLoader.displayImage(userFB.getUrl(), holder.imageView);
+                }
+                return v;
+        }
+
+        // для быстроты вынесли в отдельный класс
+        private static class ViewHolder {
+
+                public ImageView imageView;
+                public TextView textView;
+        }
 }
